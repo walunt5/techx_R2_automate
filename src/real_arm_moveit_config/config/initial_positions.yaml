@@ -1,0 +1,6 @@
+# Default initial positions for real_arm's ros2_control fake system
+
+initial_positions:
+  big_arm_revolute_joint: 0
+  big_arm_revolute_joint2: 0
+  small_arm_revolute_joint: 0

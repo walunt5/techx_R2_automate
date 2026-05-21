@@ -1,0 +1,88 @@
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <Fallback name="Gym_Phase_Master">
+
+      <Parallel>
+        <!-- 全局中断监控：一旦收到离开资源岛信号，强制打断并跳出 Parallel -->
+        <ForceFailure>
+          <WaitForSignal name="Wait_Leave_Gym" expected="LEAVE_GYM" />
+        </ForceFailure>
+
+        <Sequence name="Assembly_Task_Branch">
+          <Script code=" assembly_count := 0 " />
+
+          <ForceSuccess>
+            <KeepRunningUntilFailure name="Dynamic_Assembly_Loop">
+              <Sequence name="Single_Loop">
+                <ScriptCondition code=" assembly_count &lt; 3 " /> 
+
+                <Fallback name="Grasp_Fallback">
+                  <Sequence name="Normal_Assembly">
+
+                    <Sequence name="Step1_Get_Head">
+                      <WaitForSignal name="Mock_Nav_To_Rack" expected="NAV_SUCCESS" />
+                      <WaitForSignal name="Mock_Vision_Align" expected="VISION_SUCCESS" />
+
+                      <Fallback name="Grasp_Anti_Fool">
+                        <Sequence name="Normal_Grasp">
+                          <!-- 【修改点】：统一升级为 GripperArm 专属节点 -->
+                          <GripperArm_Trajectory_AndWait name="Go_Pre_Grasp" target_pose_name="ready2" />
+                          <ControlGripper name="Close_Gripper" command="1.0" />
+                          
+                          <Wait_Gripper_Status expected_status="2.0" timeout="5.0" />
+                          
+                          <SuctionArm_Trajectory_AndWait name="Go_Home" target_pose_name="ready" />
+                        </Sequence>
+
+                        <Sequence name="Fail_Escape">
+                          <!-- 抓取失败时的防呆脱困逻辑 -->
+                          <ControlGripper name="Open_Gripper_Escape" command="0.0" />
+                          <Wait_Gripper_Status expected_status="0.0" timeout="5.0" />
+                          <MoveGripperArm name="Gripper_Go_Home" target_joint_values="0.0;" />
+                          <Force_Failure />
+                        </Sequence>
+                      </Fallback>
+                    </Sequence>
+
+                    <Sequence name="Step2_Passive_Docking">
+                      <SuctionArm_Trajectory_AndWait name="Go_Assembly_Ready" target_pose_name="state1" />
+                      <WaitForSignal name="Mock_Nav_To_Docking" expected="NAV_SUCCESS" />
+                      <WaitForSignal name="Wait_Assembly_Done" expected="ASSEMBLY_DONE" />
+                      
+                      <ControlGripper name="Open_Gripper" command="0.0" />
+                      <Wait_Gripper_Status expected_status="0.0" timeout="5.0" />
+                      <SuctionArm_Trajectory_AndWait name="Go_Home" target_pose_name="ready" />
+                      <MoveGripperArm name="Gripper_Go_Home" target_joint_values="0.0;" />
+                    </Sequence>
+
+                    <!-- 成功执行一次，计数器加 1 -->
+                    <Script code=" assembly_count += 1 " />
+                  </Sequence>
+
+                  <!-- 全局错误清理：如果抓取或对接发生严重异常 -->
+                  <Sequence name="Error_Cleanup">
+                    <ControlGripper name="Open_Gripper_Cleanup" command="0.0" />
+                    <MySleep duration="1.0" />
+                    <Force_Success /> 
+                  </Sequence>
+                </Fallback>
+
+              </Sequence>
+            </KeepRunningUntilFailure>
+          </ForceSuccess>
+
+          <!-- 组装够3个或者被打断后，在此无限挂起，等待 LEAVE_GYM 信号触发 Fallback -->
+          <Wait_Forever />
+        </Sequence>
+      </Parallel>
+
+      <!-- 收到 LEAVE_GYM 信号被打断后，进入转场逻辑 -->
+      <Sequence name="Proceed_To_Plum_Forest">
+        <PlayAudio audio_file="R1_exited_moving_now.wav" />
+        <SwitchChassis mode="rough_terrain" />
+        <WaitForSignal name="Mock_Nav_To_Plum" expected="NAV_SUCCESS" />
+      </Sequence>
+
+    </Fallback>
+  </BehaviorTree>
+</root>

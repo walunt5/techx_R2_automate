@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: my_arm_description
+    relative_path: urdf/real_arm.urdf.xacro
+  srdf:
+    relative_path: config/real_arm.srdf
+  package_settings:
+    author_name: xie
+    author_email: xie@qq.com
+    generated_timestamp: 1777944845
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

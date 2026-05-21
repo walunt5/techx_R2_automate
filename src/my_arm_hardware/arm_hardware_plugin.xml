@@ -1,0 +1,7 @@
+<library path="my_arm_hardware">
+  <class name="my_arm_hardware/ArmHardwareInterface"
+         type="my_arm_hardware::ArmHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Custom ROS2 hardware interface for real robot arm.</description>
+  </class>
+</library>

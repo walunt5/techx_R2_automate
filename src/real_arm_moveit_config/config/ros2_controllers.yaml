@@ -1,0 +1,85 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    # 1. 机械臂1（吸盘臂）控制器
+    arm_group_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # 2. 机械臂2（夹爪臂）控制器
+    arm_group2_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # 3. 吸盘（虚拟电机）控制器
+    suction_cmd_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    # 4. 夹爪（虚拟电机）控制器
+    gripper_cmd_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    # 5. 关节状态广播器 (必须保留，用于读取底层传回的真实角度和状态)
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+# ==========================================
+# 各控制器具体参数配置
+# ==========================================
+
+arm_group_controller:
+  ros__parameters:
+    joints:
+      - big_arm_revolute_joint
+      - small_arm_revolute_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.02
+      goal_time: 0.15
+      big_arm_revolute_joint:
+        trajectory: 0.08
+        goal: 0.03
+      small_arm_revolute_joint:
+        trajectory: 0.05
+        goal: 0.02
+
+arm_group2_controller:
+  ros__parameters:
+    joints:
+      - big_arm_revolute_joint2
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.02
+      goal_time: 0.15
+      big_arm_revolute_joint2:
+        trajectory: 0.08
+        goal: 0.03
+
+suction_cmd_controller:
+  ros__parameters:
+    joints:
+      - suction_joint
+    interface_name: position
+
+gripper_cmd_controller:
+  ros__parameters:
+    joints:
+      - gripper_joint
+    interface_name: position

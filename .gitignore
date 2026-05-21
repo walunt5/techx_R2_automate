@@ -1,0 +1,12 @@
+.trae/
+.vscode/
+build/
+log/
+install/
+
+# Keil/STM32 generated files
+**/MDK-ARM/.vscode/
+**/MDK-ARM/arm1.0/
+*.uvoptx
+*.uvguix.*
+*.lst

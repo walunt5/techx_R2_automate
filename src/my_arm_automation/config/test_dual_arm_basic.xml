@@ -1,0 +1,33 @@
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="Dual_Arm_Basic_Test">
+      
+      <!-- 1. 双臂并行复位：测试 Parallel 节点和双 MoveIt 规划组是否打架 -->
+      <Parallel success_count="2" failure_count="1" name="Sync_Ready_Pose">
+        <SuctionArm_Trajectory_AndWait name="Suction_Go_Ready" target_pose_name="ready" />
+        <GripperArm_Trajectory_AndWait name="Gripper_Go_Ready" target_pose_name="ready2" />
+      </Parallel>
+
+      <!-- 2. 吸盘独立控制流：测试吸盘指令下发与状态回传 -->
+      <Sequence name="Suction_Test_Branch">
+        <ControlSuction name="Turn_On_Suction" command="1.0" />
+        <Wait_Suction_Status expected_status="1.0" timeout="10.0" />
+        <MySleep duration="1.0" />
+        <ControlSuction name="Turn_Off_Suction" command="0.0" />
+      </Sequence>
+
+      <!-- 3. 夹爪独立控制流：测试夹爪指令下发与状态回传 -->
+      <Sequence name="Gripper_Test_Branch">
+        <ControlGripper name="Close_Gripper" command="1.0" />
+        <!-- 模拟器中按 '2' 触发抓取成功 -->
+        <Wait_Gripper_Status expected_status="2.0" timeout="10.0" />
+        <MySleep duration="1.0" />
+        <ControlGripper name="Open_Gripper" command="0.0" />
+        <MoveSuctionArm name="Suction_Go_Home" target_joint_values="1.0; 1.0" />
+        <MoveGripperArm name="Gripper_Go_Home" target_joint_values="0.0;" />
+      </Sequence>
+
+      <Force_Success name="Test_Finished_Successfully" />
+    </Sequence>
+  </BehaviorTree>
+</root>
